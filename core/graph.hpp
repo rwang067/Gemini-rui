@@ -770,6 +770,7 @@ public:
 
   // load a directed graph from path
   void load_directed(std::string path, VertexId vertices) {
+    printf("|V| = %u\n", vertices);
     double prep_time = 0;
     prep_time -= MPI_Wtime();
 
@@ -786,6 +787,7 @@ public:
     }
     #endif
 
+    printf("|V| = %u, |E| = %lu\n", vertices, edges);
     EdgeId read_edges = edges / partitions;
     if (partition_id==partitions-1) {
       read_edges += edges % partitions;
@@ -812,7 +814,8 @@ public:
       assert(curr_read_bytes>=0);
       read_bytes += curr_read_bytes;
       EdgeId curr_read_edges = curr_read_bytes / edge_unit_size;
-      #pragma omp parallel for
+      printf("__sync_fetch_and_adding...\n");
+      // #pragma omp parallel for
       for (EdgeId e_i=0;e_i<curr_read_edges;e_i++) {
         VertexId src = read_edge_buffer[e_i].src;
         VertexId dst = read_edge_buffer[e_i].dst;
@@ -820,6 +823,8 @@ public:
       }
     }
     MPI_Allreduce(MPI_IN_PLACE, out_degree, vertices, vid_t, MPI_SUM, MPI_COMM_WORLD);
+
+    printf("locality-aware chunking...\n");
 
     // locality-aware chunking
     partition_offset = new VertexId [partitions + 1];

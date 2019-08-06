@@ -138,9 +138,12 @@ int main(int argc, char ** argv) {
 
   Graph<Empty> * graph;
   graph = new Graph<Empty>();
+  printf("loading graph...\n");
   graph->load_directed(argv[1], std::atoi(argv[2]));
   int iterations = std::atoi(argv[3]);
 
+
+  printf("computing...\n");
   compute(graph, iterations);
   // for (int run=0;run<5;run++) {
   //   compute(graph, iterations);
