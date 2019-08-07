@@ -781,13 +781,14 @@ public:
     this->vertices = vertices;
     long total_bytes = file_size(path.c_str());
     this->edges = total_bytes / edge_unit_size;
+    printf("partitions = %d, total_bytes = %ld, edge_unit_size = %d\n", partitions, total_bytes, edge_unit_size);
+    printf("|V| = %u, |E| = %lu\n", vertices, edges);
     #ifdef PRINT_DEBUG_MESSAGES
     if (partition_id==0) {
       printf("|V| = %u, |E| = %lu\n", vertices, edges);
     }
     #endif
 
-    printf("|V| = %u, |E| = %lu\n", vertices, edges);
     EdgeId read_edges = edges / partitions;
     if (partition_id==partitions-1) {
       read_edges += edges % partitions;
@@ -802,6 +803,9 @@ public:
     for (VertexId v_i=0;v_i<vertices;v_i++) {
       out_degree[v_i] = 0;
     }
+    printf("alloc_interleaved_vertex_array...\n");
+    out_degree[1] += 5;
+    printf("out_degree[1] = %d\n", out_degree[0]);
     assert(lseek(fin, read_offset, SEEK_SET)==read_offset);
     read_bytes = 0;
     while (read_bytes < bytes_to_read) {
@@ -814,11 +818,11 @@ public:
       assert(curr_read_bytes>=0);
       read_bytes += curr_read_bytes;
       EdgeId curr_read_edges = curr_read_bytes / edge_unit_size;
-      printf("__sync_fetch_and_adding...\n");
-      // #pragma omp parallel for
+      #pragma omp parallel for
       for (EdgeId e_i=0;e_i<curr_read_edges;e_i++) {
         VertexId src = read_edge_buffer[e_i].src;
         VertexId dst = read_edge_buffer[e_i].dst;
+        // printf("out_degree[%d]++\n", src);
         __sync_fetch_and_add(&out_degree[src], 1);
       }
     }
