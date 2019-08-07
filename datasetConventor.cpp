@@ -6,17 +6,19 @@
 
 #include <fcntl.h>
 #include <unistd.h>
+#include <stdlib.h>
 #include <sys/types.h>
 #include <dirent.h>
 #include <sys/stat.h>
 
-typedef uint32_t vid_t;
+typedef unsigned int vid_t;
 
 #define CHUNKSIZE (1<<20)
 
 int main(int argc, char const *argv[])
 {
-    std::string filename = "../dataset/LiveJournal/soc-LiveJournal1.txt";
+    // std::string filename = "../dataset/LiveJournal/soc-LiveJournal1.txt";
+    std::string filename = argv[1];
     FILE * inf = fopen(filename.c_str(), "r");
 
     std::string outfilename = filename + ".binedgelist";
